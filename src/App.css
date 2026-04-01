@@ -21,13 +21,17 @@ export default function App() {
     telemetry: { wifi_rssi: 0, uptime_sec: 0 }
   });
 
-  // Fungsi Helper untuk menentukan Level berdasarkan jumlah Pompa (Update Threshold)
+  // Logika Threshold Baru Sesuai Permintaan:
+  // 1 Pompa = Harian
+  // 2 Pompa = Siaga 3
+  // 3-4 Pompa = Siaga 2
+  // 5-7 Pompa = Siaga 1
   const deriveLevelFromPumps = (pumpCount) => {
-    if (pumpCount >= 6) return { code: 1, text: "🔴 SIAGA 1 🔴" }; // 6-7 Pompa
-    if (pumpCount >= 4) return { code: 2, text: "🟠 SIAGA 2 🟠" }; // 4-5 Pompa
-    if (pumpCount >= 2) return { code: 3, text: "🔵 SIAGA 3 🔵" }; // 2-3 Pompa
-    if (pumpCount === 1) return { code: 0, text: "🟢 HARIAN 🟢" }; // 1 Pompa
-    return { code: 255, text: "🟢 AMAN 🟢" };                  // 0 Pompa
+    if (pumpCount >= 5) return { code: 1, text: "🔴 SIAGA 1 🔴" }; 
+    if (pumpCount >= 3) return { code: 2, text: "🟠 SIAGA 2 🟠" }; 
+    if (pumpCount === 2) return { code: 3, text: "🔵 SIAGA 3 🔵" }; 
+    if (pumpCount === 1) return { code: 0, text: "🟢 HARIAN 🟢" }; 
+    return { code: 255, text: "🟢 AMAN 🟢" };                  
   };
 
   useEffect(() => {
@@ -59,13 +63,11 @@ export default function App() {
         try {
           const payload = JSON.parse(message.toString());
           
-          // Filter detail pompa P1-P7
           const pumpEntries = Object.entries(payload.pumps.detail).filter(([name]) => 
              ["P1", "P2", "P3", "P4", "P5", "P6", "P7"].includes(name)
           );
           const activeCount = pumpEntries.filter(([_, on]) => on).length;
           
-          // Hitung Level berdasarkan aturan baru
           const newLevel = deriveLevelFromPumps(activeCount);
           
           setSensorData({
@@ -134,7 +136,7 @@ export default function App() {
                 Monitoring Pompa Banjir
               </h1>
               <h2 className="text-[#F5A623] text-base md:text-xl font-bold mt-1">
-                PT. Ultra Prima Abadi - DM
+                PT. Ultra Prima Abadi
               </h2>
             </div>
           </div>
