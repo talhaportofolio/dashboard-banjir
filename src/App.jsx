@@ -21,13 +21,19 @@ export default function App() {
     telemetry: { wifi_rssi: 0, uptime_sec: 0 }
   });
 
-  // Fungsi Helper untuk menentukan Level berdasarkan jumlah Pompa
+  /**
+   * FIX LOGIKA THRESHOLD (Sesuai Permintaan):
+   * 1 Pompa = HARIAN
+   * 2-3 Pompa = SIAGA 3
+   * 4-5 Pompa = SIAGA 2
+   * 6-7 Pompa = SIAGA 1
+   */
   const deriveLevelFromPumps = (pumpCount) => {
-    if (pumpCount >= 7) return { code: 1, text: "🔴 SIAGA 1 🔴" };
-    if (pumpCount >= 5) return { code: 2, text: "🟠 SIAGA 2 🟠" };
-    if (pumpCount >= 3) return { code: 3, text: "🔵 SIAGA 3 🔵" };
-    if (pumpCount >= 1) return { code: 0, text: "🟢 HARIAN 🟢" };
-    return { code: 255, text: "🟢 AMAN 🟢" };
+    if (pumpCount >= 6) return { code: 1, text: "🔴 SIAGA 1 🔴" };      // 6-7 Pompa
+    if (pumpCount >= 4) return { code: 2, text: "🟠 SIAGA 2 🟠" };      // 4-5 Pompa
+    if (pumpCount >= 2) return { code: 3, text: "🔵 SIAGA 3 🔵" };      // 2-3 Pompa
+    if (pumpCount === 1) return { code: 0, text: "🟢 HARIAN 🟢" };      // 1 Pompa
+    return { code: 255, text: "🟢 AMAN 🟢" };                         // 0 Pompa
   };
 
   useEffect(() => {
@@ -59,13 +65,13 @@ export default function App() {
         try {
           const payload = JSON.parse(message.toString());
           
-          // Ambil hanya P1-P7 dari detail untuk perhitungan dashboard
+          // Hitung jumlah pompa aktif berdasarkan detail P1-P7
           const pumpEntries = Object.entries(payload.pumps.detail).filter(([name]) => 
              ["P1", "P2", "P3", "P4", "P5", "P6", "P7"].includes(name)
           );
           const activeCount = pumpEntries.filter(([_, on]) => on).length;
           
-          // Hitung Level berdasarkan jumlah pompa aktif
+          // Tentukan level baru
           const newLevel = deriveLevelFromPumps(activeCount);
           
           setSensorData({
@@ -99,7 +105,6 @@ export default function App() {
     };
   }, []); 
 
-  // --- HELPER WARNA UI (DIKONSISTENKAN DENGAN STATUS.CODE) ---
   const getLevelColor = (code) => {
     switch (code) {
       case 1: return 'bg-red-500 text-white border-red-600 shadow-lg';
@@ -135,7 +140,7 @@ export default function App() {
                 Monitoring Pompa Banjir
               </h1>
               <h2 className="text-[#F5A623] text-base md:text-xl font-bold mt-1">
-                PT. Ultra Prima Abadi - DM
+                PT. Ultra Prima Abadi
               </h2>
             </div>
           </div>
