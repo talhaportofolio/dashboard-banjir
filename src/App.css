@@ -22,18 +22,18 @@ export default function App() {
   });
 
   /**
-   * Logika Threshold Baru:
+   * FIX LOGIKA THRESHOLD (Sesuai Permintaan):
    * 1 Pompa = HARIAN
    * 2-3 Pompa = SIAGA 3
    * 4-5 Pompa = SIAGA 2
    * 6-7 Pompa = SIAGA 1
    */
   const deriveLevelFromPumps = (pumpCount) => {
-    if (pumpCount >= 6) return { code: 1, text: "🔴 SIAGA 1 🔴" }; 
-    if (pumpCount >= 4) return { code: 2, text: "🟠 SIAGA 2 🟠" }; 
-    if (pumpCount >= 2) return { code: 3, text: "🔵 SIAGA 3 🔵" }; 
-    if (pumpCount === 1) return { code: 0, text: "🟢 HARIAN 🟢" }; 
-    return { code: 255, text: "🟢 AMAN 🟢" };                  
+    if (pumpCount >= 6) return { code: 1, text: "🔴 SIAGA 1 🔴" };      // 6-7 Pompa
+    if (pumpCount >= 4) return { code: 2, text: "🟠 SIAGA 2 🟠" };      // 4-5 Pompa
+    if (pumpCount >= 2) return { code: 3, text: "🔵 SIAGA 3 🔵" };      // 2-3 Pompa
+    if (pumpCount === 1) return { code: 0, text: "🟢 HARIAN 🟢" };      // 1 Pompa
+    return { code: 255, text: "🟢 AMAN 🟢" };                         // 0 Pompa
   };
 
   useEffect(() => {
@@ -65,11 +65,13 @@ export default function App() {
         try {
           const payload = JSON.parse(message.toString());
           
+          // Hitung jumlah pompa aktif berdasarkan detail P1-P7
           const pumpEntries = Object.entries(payload.pumps.detail).filter(([name]) => 
              ["P1", "P2", "P3", "P4", "P5", "P6", "P7"].includes(name)
           );
           const activeCount = pumpEntries.filter(([_, on]) => on).length;
           
+          // Tentukan level baru
           const newLevel = deriveLevelFromPumps(activeCount);
           
           setSensorData({
