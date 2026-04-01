@@ -21,15 +21,17 @@ export default function App() {
     telemetry: { wifi_rssi: 0, uptime_sec: 0 }
   });
 
-  // Logika Threshold Baru Sesuai Permintaan:
-  // 1 Pompa = Harian
-  // 2 Pompa = Siaga 3
-  // 3-4 Pompa = Siaga 2
-  // 5-7 Pompa = Siaga 1
+  /**
+   * Logika Threshold Baru:
+   * 1 Pompa = HARIAN
+   * 2-3 Pompa = SIAGA 3
+   * 4-5 Pompa = SIAGA 2
+   * 6-7 Pompa = SIAGA 1
+   */
   const deriveLevelFromPumps = (pumpCount) => {
-    if (pumpCount >= 5) return { code: 1, text: "🔴 SIAGA 1 🔴" }; 
-    if (pumpCount >= 3) return { code: 2, text: "🟠 SIAGA 2 🟠" }; 
-    if (pumpCount === 2) return { code: 3, text: "🔵 SIAGA 3 🔵" }; 
+    if (pumpCount >= 6) return { code: 1, text: "🔴 SIAGA 1 🔴" }; 
+    if (pumpCount >= 4) return { code: 2, text: "🟠 SIAGA 2 🟠" }; 
+    if (pumpCount >= 2) return { code: 3, text: "🔵 SIAGA 3 🔵" }; 
     if (pumpCount === 1) return { code: 0, text: "🟢 HARIAN 🟢" }; 
     return { code: 255, text: "🟢 AMAN 🟢" };                  
   };
