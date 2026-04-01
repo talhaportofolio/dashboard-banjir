@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Activity, Droplets, Power, PowerOff, Wifi, Clock, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 // Konfigurasi MQTT HiveMQ Public
@@ -9,8 +9,6 @@ export default function App() {
   const [client, setClient] = useState(null);
   const [connectStatus, setConnectStatus] = useState('Disconnected');
   const [lastUpdate, setLastUpdate] = useState(null);
-  const [isSimulating, setIsSimulating] = useState(false);
-  const isSimulatingRef = useRef(isSimulating);
 
   // State Utama
   const [sensorData, setSensorData] = useState({
@@ -22,11 +20,6 @@ export default function App() {
     },
     telemetry: { wifi_rssi: 0, uptime_sec: 0 }
   });
-
-  // Sinkronisasi ref untuk callback MQTT
-  useEffect(() => {
-    isSimulatingRef.current = isSimulating;
-  }, [isSimulating]);
 
   // Fungsi Helper untuk menentukan Level berdasarkan jumlah Pompa
   const deriveLevelFromPumps = (pumpCount) => {
@@ -63,31 +56,29 @@ export default function App() {
       mqttClient.on('offline', () => setConnectStatus('Offline'));
 
       mqttClient.on('message', (topic, message) => {
-        if (!isSimulatingRef.current) {
-          try {
-            const payload = JSON.parse(message.toString());
-            
-            // Ambil hanya P1-P7 dari detail untuk perhitungan dashboard
-            const pumpEntries = Object.entries(payload.pumps.detail).filter(([name]) => 
-               ["P1", "P2", "P3", "P4", "P5", "P6", "P7"].includes(name)
-            );
-            const activeCount = pumpEntries.filter(([_, on]) => on).length;
-            
-            // Hitung Level berdasarkan jumlah pompa aktif
-            const newLevel = deriveLevelFromPumps(activeCount);
-            
-            setSensorData({
-              ...payload,
-              pumps: {
-                total_on: activeCount,
-                detail: Object.fromEntries(pumpEntries)
-              },
-              status: newLevel
-            });
-            setLastUpdate(new Date().toLocaleTimeString('en-US', { hour12: true }));
-          } catch (error) {
-            console.error("Invalid JSON:", error);
-          }
+        try {
+          const payload = JSON.parse(message.toString());
+          
+          // Ambil hanya P1-P7 dari detail untuk perhitungan dashboard
+          const pumpEntries = Object.entries(payload.pumps.detail).filter(([name]) => 
+             ["P1", "P2", "P3", "P4", "P5", "P6", "P7"].includes(name)
+          );
+          const activeCount = pumpEntries.filter(([_, on]) => on).length;
+          
+          // Hitung Level berdasarkan jumlah pompa aktif
+          const newLevel = deriveLevelFromPumps(activeCount);
+          
+          setSensorData({
+            ...payload,
+            pumps: {
+              total_on: activeCount,
+              detail: Object.fromEntries(pumpEntries)
+            },
+            status: newLevel
+          });
+          setLastUpdate(new Date().toLocaleTimeString('en-US', { hour12: true }));
+        } catch (error) {
+          console.error("Invalid JSON:", error);
         }
       });
     };
@@ -108,41 +99,6 @@ export default function App() {
     };
   }, []); 
 
-  // --- LOGIKA SIMULASI TEST (DIPERBAIKI) ---
-  useEffect(() => {
-    let interval;
-    if (isSimulating) {
-      let step = 0;
-      const testSteps = [1, 3, 5, 7, 0];
-      
-      interval = setInterval(() => {
-        const count = testSteps[step];
-        const newLevel = deriveLevelFromPumps(count);
-        
-        const mockDetail = {
-          P1: count >= 1,
-          P2: count >= 2,
-          P3: count >= 3,
-          P4: count >= 4,
-          P5: count >= 5,
-          P6: count >= 6,
-          P7: count >= 7,
-        };
-
-        setSensorData({
-          device_id: "MODE_TEST_DASHBOARD",
-          status: newLevel,
-          pumps: { total_on: count, detail: mockDetail },
-          telemetry: { wifi_rssi: -50, uptime_sec: 1234 }
-        });
-        setLastUpdate(new Date().toLocaleTimeString('en-US', { hour12: true }));
-        
-        step = (step + 1) % testSteps.length;
-      }, 3000);
-    }
-    return () => clearInterval(interval);
-  }, [isSimulating]);
-
   // --- HELPER WARNA UI (DIKONSISTENKAN DENGAN STATUS.CODE) ---
   const getLevelColor = (code) => {
     switch (code) {
@@ -157,12 +113,6 @@ export default function App() {
   const getLevelIcon = (code) => {
     if (code === 255 || code === 0) return <CheckCircle2 size={64} className={`mb-2 ${code === 255 ? 'text-emerald-500' : 'text-white'}`} />;
     return <AlertTriangle size={64} className="mb-2 text-white" />;
-  };
-
-  const formatUptime = (seconds) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    return `${h} Jam ${m} Menit`;
   };
 
   return (
@@ -195,17 +145,6 @@ export default function App() {
               <div className={`w-3 h-3 rounded-full animate-pulse ${connectStatus === 'Connected' ? 'bg-emerald-400' : 'bg-red-500'}`}></div>
               <span className="text-xs font-bold uppercase tracking-wider">{connectStatus}</span>
             </div>
-            
-            <button 
-              onClick={() => setIsSimulating(!isSimulating)}
-              className={`w-full md:w-auto px-6 py-2.5 rounded-full font-black text-xs transition-all duration-300 shadow-xl ${
-                isSimulating 
-                ? 'bg-[#F5A623] text-[#112240] ring-4 ring-[#F5A623]/30 scale-105' 
-                : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'
-              }`}
-            >
-              {isSimulating ? '🛑 STOP TEST' : '🧪 MULAI TEST UI'}
-            </button>
           </div>
         </div>
 
@@ -313,13 +252,14 @@ export default function App() {
         </div>
       </div>
 
+      {/* FOOTER */}
       <div className="mt-12 text-center flex flex-col items-center gap-2">
         <div className="w-16 h-1 bg-[#112240] rounded-full mb-2"></div>
         <div className="text-[10px] font-black text-[#112240]/40 uppercase tracking-[0.3em]">
-          Industrial Monitoring System &copy; 2024
+          Industrial Monitoring System &copy;
         </div>
         <div className="text-[9px] font-bold text-[#F5A623]">
-          PT. ULTRA PRIMA ABADI - DIVISI MAINTENANCE
+          PT. ULTRA PRIMA ABADI
         </div>
       </div>
 
