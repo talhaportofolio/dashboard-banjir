@@ -154,12 +154,12 @@ export default function App() {
         {/* DASHBOARD CONTENT */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           
-          {/* STATUS POMPA */}
+          {/* POMPA */}
           <div className="md:col-span-8 bg-white rounded-3xl border-2 border-slate-100 p-8 shadow-xl flex flex-col relative overflow-hidden">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
               <h3 className="text-2xl font-black text-[#112240] flex items-center gap-3 italic text-blue-900">
                 <Droplets className="text-[#F5A623]" size={32} />
-                STATUS POMPA
+                POMPA
               </h3>
               <div className="bg-slate-50 px-6 py-2 rounded-2xl border-2 border-slate-100">
                 <span className="text-slate-400 text-xs font-black uppercase mr-2">Power On:</span>
@@ -204,7 +204,8 @@ export default function App() {
                  <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full"></div>
                )}
             </div>
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] opacity-70 mb-2">Level Air Terdeteksi</h3>
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] opacity-70 mb-1">Level Air Terdeteksi</h3>
+            <div className="text-xs font-black uppercase tracking-[0.2em] opacity-70 mb-2">Status</div>
             <div className="text-3xl font-black tracking-tighter italic leading-tight">
               {sensorData.status.text}
             </div>
