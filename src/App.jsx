@@ -135,7 +135,7 @@ export default function App() {
             />
             <div className="flex flex-col">
               <h1 className="text-xl md:text-3xl font-black text-white tracking-tight leading-none uppercase">
-                Monitoring Pompa Banjir
+                Monitoring Pompa Banjir Realtime
               </h1>
               <h2 className="text-[#F5A623] text-base md:text-xl font-bold mt-1">
                 PT. Ultra Prima Abadi
