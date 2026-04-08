@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Droplets, Power, PowerOff, Wifi, Clock, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Activity, Droplets, Power, PowerOff, Wifi, Clock, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
 
 // Konfigurasi MQTT HiveMQ Public
 const MQTT_BROKER = 'wss://broker.hivemq.com:8884/mqtt';
@@ -22,7 +22,7 @@ export default function App() {
   });
 
   /**
-   * FIX LOGIKA THRESHOLD (Sesuai Permintaan):
+   * LOGIKA THRESHOLD:
    * 1 Pompa = HARIAN
    * 2-3 Pompa = SIAGA 3
    * 4-5 Pompa = SIAGA 2
@@ -65,13 +65,11 @@ export default function App() {
         try {
           const payload = JSON.parse(message.toString());
           
-          // Hitung jumlah pompa aktif berdasarkan detail P1-P7
           const pumpEntries = Object.entries(payload.pumps.detail).filter(([name]) => 
              ["P1", "P2", "P3", "P4", "P5", "P6", "P7"].includes(name)
           );
           const activeCount = pumpEntries.filter(([_, on]) => on).length;
           
-          // Tentukan level baru
           const newLevel = deriveLevelFromPumps(activeCount);
           
           setSensorData({
@@ -156,7 +154,7 @@ export default function App() {
         {/* DASHBOARD CONTENT */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           
-          {/* SISI KIRI: STATUS POMPA */}
+          {/* STATUS POMPA */}
           <div className="md:col-span-8 bg-white rounded-3xl border-2 border-slate-100 p-8 shadow-xl flex flex-col relative overflow-hidden">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
               <h3 className="text-2xl font-black text-[#112240] flex items-center gap-3 italic text-blue-900">
@@ -198,7 +196,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* SISI KANAN: LEVEL AIR TERDETEKSI */}
+          {/* LEVEL AIR TERDETEKSI */}
           <div className={`md:col-span-4 rounded-3xl border-2 p-10 flex flex-col items-center justify-center text-center transition-all duration-700 ${getLevelColor(sensorData.status.code)}`}>
             <div className="relative">
                {getLevelIcon(sensorData.status.code)}
@@ -216,6 +214,66 @@ export default function App() {
                 <Clock size={14} /> Terakhir: {lastUpdate || '--:--:--'}
               </div>
             </div>
+          </div>
+
+          {/* PANDUAN LEVEL */}
+          <div className="md:col-span-12 bg-white rounded-3xl border-2 border-slate-100 p-6 shadow-lg">
+             <div className="flex items-center gap-3 mb-4 text-[#112240]">
+                <Info size={24} className="text-[#F5A623]" />
+                <h4 className="font-black text-sm uppercase tracking-widest">Panduan Status Level</h4>
+             </div>
+             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 text-[11px]">
+                <div className="flex flex-col gap-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                   <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-slate-300"></div>
+                      <span className="font-black">AMAN</span>
+                   </div>
+                   <div className="text-slate-500 leading-tight">
+                      <span className="font-bold block">0 Pompa</span>
+                      Air stabil, tidak ada pompa aktif.
+                   </div>
+                </div>
+                <div className="flex flex-col gap-2 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                   <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                      <span className="font-black text-emerald-700">HARIAN</span>
+                   </div>
+                   <div className="text-emerald-600 leading-tight">
+                      <span className="font-bold block">1 Pompa</span>
+                      Air mulai masuk, satu pompa aktif.
+                   </div>
+                </div>
+                <div className="flex flex-col gap-2 bg-blue-50 p-4 rounded-xl border border-blue-100">
+                   <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+                      <span className="font-black text-blue-700">SIAGA 3</span>
+                   </div>
+                   <div className="text-blue-600 leading-tight">
+                      <span className="font-bold block">2-3 Pompa</span>
+                      Waspada, volume air meningkat.
+                   </div>
+                </div>
+                <div className="flex flex-col gap-2 bg-orange-50 p-4 rounded-xl border border-orange-100">
+                   <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                      <span className="font-black text-orange-700">SIAGA 2</span>
+                   </div>
+                   <div className="text-orange-600 leading-tight">
+                      <span className="font-bold block">4-5 Pompa</span>
+                      Bahaya, debit air sangat tinggi.
+                   </div>
+                </div>
+                <div className="flex flex-col gap-2 bg-red-50 p-4 rounded-xl border border-red-100">
+                   <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                      <span className="font-black text-red-700">SIAGA 1</span>
+                   </div>
+                   <div className="text-red-600 leading-tight">
+                      <span className="font-bold block">6-7 Pompa</span>
+                      Kritis, ancaman akan banjir.
+                   </div>
+                </div>
+             </div>
           </div>
 
           {/* TELEMETRY */}
