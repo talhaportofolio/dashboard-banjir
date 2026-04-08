@@ -138,7 +138,7 @@ export default function App() {
                 Monitoring Pompa Banjir Realtime
               </h1>
               <h2 className="text-[#F5A623] text-base md:text-xl font-bold mt-1">
-                PT. Ultra Prima Abadi
+                PT. Ultra Prima Abadi - Jakarta
               </h2>
             </div>
           </div>
