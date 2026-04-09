@@ -134,7 +134,7 @@ export default function App() {
               onError={(e) => { e.target.style.display = 'none'; }}
             />
             <div className="flex flex-col">
-              <h1 className="text-xl md:text-3xl font-black text-white tracking-tight leading-none uppercase">
+              <h1 className="text-xl md:text-3xl font-light text-white tracking-tight leading-none uppercase">
                 Monitoring Pompa Banjir Realtime
               </h1>
               <h2 className="text-[#F5A623] text-base md:text-xl font-bold mt-1">
